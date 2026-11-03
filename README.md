@@ -8,9 +8,6 @@ A lightweight, fully autonomous, and dependency-free pure Python tool for forens
 - **Autonomous Security Audit:** Static metadata inspection, tokenizer vocabulary validation, anomaly detection, and architecture mapping verification.
 - **Modern HTML Report:** Automatically generates a clean, responsive HTML report with a dark-mode design—completely self-contained without external JavaScript dependencies.
 
-```
-
----
 
 ### 2. Attack Vectors & Vulnerabilities in `.safetensors`
 
