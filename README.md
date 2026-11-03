@@ -13,15 +13,6 @@ A lightweight, fully autonomous, and dependency-free pure Python tool for forens
 
 While modern model formats (`.gguf` and `.safetensors`) were designed to mitigate legacy arbitrary code execution vulnerabilities (such as PyTorch `pickle` deserialization RCE), they introduce distinct architectural, structural, and behavioral risk vectors across local and agentic execution environments.
 
-### SafeTensors Attack Surface
-
-The `.safetensors` format guarantees zero executable bytecode inside the weight container itself. However, security risks persist across parser implementations, infrastructure pipelines, and logical integrity:
-
-- **Header Manipulation & DoS:** The standard specifies a JSON header defining tensor shapes and offsets preceding binary payload arrays. Faulty or non-strict parsers are susceptible to integer overflows, invalid memory allocation requests, and uncontrolled heap consumption, leading to Out-Of-Memory (OOM) crashes and Denial of Service (DoS).
-- **Upstream Pipeline Exploitation:** The conversion of legacy `.bin` or `.pt` checkpoints into `.safetensors` requires running Python code. Adversaries targeting model conversion bots or automated CI/CD build nodes inject malicious payloads into repository source trees to execute RCE during conversion.
-- **Config & Metadata Poisoning:** Arbitrary modifications to `config.json`, `tokenizer.json`, or embedded metadata can corrupt context windows, remap special tokens, or inject pre-set system instruction triggers to bypass downstream safety filters.
-- **Training-Time Weight Backdooring:** Weight arrays pass all structural validation checks, but their numeric values can be adversarially fine-tuned to embed latent logic triggers. When specific keyphrases appear in inference prompts, backdoored models deterministically output malicious code or initiate exfiltration behaviors.
-
 
 ### GGUF & Agentic Execution Attack Vectors
 
@@ -32,7 +23,13 @@ GGUF (GPT-Generated Unified Format) stores key-value metadata alongside quantize
 - **Embedded Chat Template Hijacking:** GGUF binaries contain raw Jinja conversation templates (`tokenizer.chat_template`). Injected templates silently alter system prompts, neutralize model alignment, or append unseen system directives to every user query.
 - **Agentic Weaponization (Tool Calling Exploitation):** When a GGUF model is deployed within an agentic workflow granting tool access (Python REPL, shell execution, local file I/O, web scraping), compromised weights or poisoned metadata force the model to issue unauthorized tool calls. This transforms the model into an active vector for secondary malware retrieval, local data exfiltration, and host-level Remote Code Execution (RCE).
 
+
+### Addendum
+
+
 ### Attack Vectors & Vulnerabilities in `.safetensors`
+
+GGUF Auditor does not test safetensors.
 
 While the `.safetensors` format eliminates executable bytecode (`pickle` opcodes) present in legacy PyTorch formats (`.bin`, `.pt`), structural and pipeline vulnerabilities still exist:
 
@@ -54,3 +51,4 @@ While the `.safetensors` format eliminates executable bytecode (`pickle` opcodes
 4. **Logical Backdoors:** Vector 4: Training-Time Weight Poisoning.
 * **Mechanism:** The format guarantees numeric validity, not semantic intent. Models can be adversarially fine-tuned to pass standard benchmarks while embedding triggers that activate specific malicious behaviors or payload generations when deployed.
 * **Impact:** Deterministic, stealthy execution of backdoored logic completely invisible to static structural scanners.
+
